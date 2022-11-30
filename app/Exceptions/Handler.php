@@ -2,7 +2,10 @@
 
 namespace App\Exceptions;
 
+use App\Api\V1\Exceptions\BusinessException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -22,7 +25,7 @@ class Handler extends ExceptionHandler
      * @var array<int, class-string<\Throwable>>
      */
     protected $dontReport = [
-        //
+        BusinessException::class
     ];
 
     /**
@@ -43,8 +46,30 @@ class Handler extends ExceptionHandler
      */
     public function register()
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        $this->renderable(function (BusinessException $e) {
+            $code = ($e->getCode() === 0) ? 409 : $e->getCode();
+
+            return response()->json([
+                "status" => $code,
+                "message" => $e->getMessage(),
+                "data" => []
+            ], $code);
+        });
+
+        $this->renderable(function (NotFoundHttpException $e) {
+            return response()->json([
+                "status" => 404,
+                "message" => "Not found",
+                "data" => []
+            ], 404);
+        });
+
+        $this->renderable(function(ValidationException $e) {
+            return response()->json([
+                "status" => 400,
+                "message" => "Validation error",
+                "data" => $e->errors()
+            ], 400);
         });
     }
 }

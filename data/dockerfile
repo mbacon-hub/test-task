@@ -3,7 +3,13 @@ WORKDIR /var/www/test
 RUN apt-get update \
     && apt-get install -y \
                           libzip-dev \
-                          zip                        
+                          zip \
+                          libpq-dev
 RUN docker-php-ext-install bcmath \
-    && docker-php-ext-install zip    
+    && docker-php-ext-install zip \
+    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-install pdo pdo_pgsql pgsql \
+    && pecl install redis \
+    && docker-php-ext-enable redis.so
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+

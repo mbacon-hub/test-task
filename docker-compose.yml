@@ -4,40 +4,53 @@ services:
     build:
       context: .
       dockerfile: ./data/dockerfile
+    container_name: "app_php"
     restart: always
     ports:
-     - "9000:9000"
+      - "9000:9000"
     volumes:
-     - .:/var/www/test
+      - .:/var/www/test
     networks:
-     - app_network
+      - app_network
     depends_on:
-     - postgres
+      - postgres
   web:
     image: nginx
     restart: always
+    container_name: "app_nginx"
     ports:
-     - "80:80"
+      - "80:80"
     volumes:
-     - .:/var/www/test
-     - ./data/nginx/conf.d/:/etc/nginx/conf.d/
+      - .:/var/www/test
+      - ./data/nginx/conf.d/:/etc/nginx/conf.d/
     networks:
-     - app_network
+      - app_network
     depends_on:
-     - php
+      - php
   postgres:
     image: postgres
     restart: always
+    container_name: "app_postgres"
     ports:
-     - "5436:5436"
+      - "5432:5432"
     volumes:
-     - ./data/postgres/:/var/lib/postgresql/data
+      - ./data/postgres/:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_DB: test
     networks:
-     - app_network
+      - app_network
+  redis:
+    image: redis
+    restart: always
+    container_name: "app_redis"
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - app_network
 networks:
   app_network:
     driver: bridge
